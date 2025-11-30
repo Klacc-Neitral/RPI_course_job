@@ -638,3 +638,64 @@ img {
     border-radius: 20px; 
     margin-top: 20px;
 }
+/* ==================================== */
+/* Стили для Поиска и Фильтров (My Courses) */
+/* ==================================== */
+
+.filter-panel {
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.5); /* Темный полупрозрачный фон */
+    border-radius: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+    color: white;
+}
+
+.search-box {
+    flex-grow: 1;
+}
+
+.filter-checkboxes {
+    display: flex;
+    gap: 15px;
+}
+
+.filter-checkboxes label {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* ==================================== */
+/* ОБЩИЕ СТИЛИ ДЛЯ ПОЛЕЙ ВВОДА */
+/* ==================================== */
+
+.app-input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: none;
+    outline: none;
+    background: #fff;
+    color: #333;
+}
+
+/* ==================================== */
+/* Стили для Поиска (All Courses) */
+/* ==================================== */
+
+/* Обертка для контейнера поиска во 'Всех курсах' */
+.search-bar-wrapper {
+    margin: 0 0 20px 0;
+}
+
+/* Переопределяем padding и border-radius для более крупного поля "Все курсы" */
+#all-courses-search {
+    padding: 15px; 
+    border-radius: 10px; 
+    font-size: 16px;
+}
