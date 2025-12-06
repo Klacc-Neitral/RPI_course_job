@@ -216,15 +216,6 @@ export default class ProfilePresenter {
         }
     }
 
-    #handleDeleteCourse(courseTitle) {
-        this.#coursesModel.removeCourse(courseTitle);
-        this.#renderMyCoursesList();
-    }
-
-    #handleEnrollCourse(courseTitle) {
-        this.#coursesModel.enrollCourse(courseTitle);
-    }
-
     #openModal() {
         const user = this.#userModel.getUser();
         this.#modalComponent = new EditModalView(user);
@@ -260,4 +251,16 @@ export default class ProfilePresenter {
 
         this.#renderMyCoursesList();
     };
+    async #handleDeleteCourse(courseTitle) {
+        // Ждем пока сервер ответит, что удаление прошло успешно
+        await this.#coursesModel.removeCourse(courseTitle);
+        // Только потом перерисовываем
+        this.#renderMyCoursesList();
+    }
+
+    async #handleEnrollCourse(courseTitle) {
+        await this.#coursesModel.enrollCourse(courseTitle);
+        // Обновляем список (если нужно визуально показать изменения на вкладке "Все курсы")
+        this.#renderAllCoursesList();
+    }
 }

@@ -62,16 +62,6 @@ export default class CourseContentPresenter {
         render(this.#courseContentComponent, this.#container, RenderPosition.BEFOREEND);
     }
 
-    #updateProgressAndRender() {
-
-        let newProgress = this.#calculateProgress(this.#currentPageIndex);
-        
-        if (newProgress > 100) newProgress = 100;
-
-        this.#coursesModel.updateCourseProgress(this.#courseData.title, newProgress);
-        this.#renderCoursePage();
-    }
-
     #handlePrevClick = () => {
         if (this.#currentPageIndex > 0) {
             this.#currentPageIndex--;
@@ -94,4 +84,12 @@ export default class CourseContentPresenter {
         remove(this.#courseContentComponent);
         this.onBackToProfile();
     };
+    async #updateProgressAndRender() {
+        let newProgress = this.#calculateProgress(this.#currentPageIndex);
+        if (newProgress > 100) newProgress = 100;
+
+        // Ждем сохранения на сервере
+        await this.#coursesModel.updateCourseProgress(this.#courseData.title, newProgress);
+        this.#renderCoursePage();
+    }
 }

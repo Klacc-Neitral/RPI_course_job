@@ -1,56 +1,87 @@
-import { MY_COURSES, ALL_COURSES } from "../mock/courses.js";
-import { COURSE_CONTENTS } from "../mock/course-content.js"; 
-
 export default class CoursesModel {
-    #myCourses = [...MY_COURSES];
-    #allCourses = [...ALL_COURSES];
-    #courseContents = COURSE_CONTENTS; 
+    #apiService = null;
+    #courses = []; 
+    #materials = []; // Здесь будем хранить все страницы всех курсов
 
-    getMyCourses() {
-        return this.#myCourses;
+    constructor(apiService) {
+        this.#apiService = apiService;
     }
 
-    getAllCourses() {
-        return this.#allCourses;
-    }
+    async init() {
+        try {
+            // Скачиваем параллельно и курсы, и материалы
+            const [courses, materials] = await Promise.all([
+                this.#apiService.courses,
+                this.#apiService.materials
+            ]);
 
-
-    getCourseContent(courseTitle) {
-
-        return this.#courseContents[courseTitle] || this.#courseContents['default'];
-    }
-
-    removeCourse(courseTitle) {
-        this.#myCourses = this.#myCourses.filter(course => course.title !== courseTitle);
-    }
-
-    enrollCourse(courseTitle) {
-        const courseToEnroll = this.#allCourses.find(c => c.title === courseTitle);
-        if (courseToEnroll) {
-            const isAlreadyEnrolled = this.#myCourses.some(c => c.title === courseTitle);
-            if (!isAlreadyEnrolled) {
-                const newMyCourse = {
-                    title: courseToEnroll.title,
-                    percent: 0,
-                    img: "./img/Rectangle 42.png",
-                    action: "Начать"
-                };
-                this.#myCourses.push(newMyCourse);
-            }
+            this.#courses = courses;
+            this.#materials = materials;
+            
+        } catch(err) {
+            this.#courses = [];
+            this.#materials = [];
+            console.error('Ошибка загрузки данных:', err);
         }
     }
 
-    updateCourseProgress(courseTitle, newPercent) {
-        const course = this.#myCourses.find(c => c.title === courseTitle);
+    getMyCourses() {
+        return this.#courses.filter(course => course.isEnrolled === true);
+    }
+
+    getAllCourses() {
+        return this.#courses.filter(course => course.isEnrolled === false);
+    }
+
+    // ИЗМЕНЕНО: Собираем контент для конкретного курса
+    getCourseContent(courseTitle) {
+        // Фильтруем массив материалов. 
+        // Ищем те записи, где course_name совпадает с названием текущего курса
+        const content = this.#materials.filter(item => item.course_name === courseTitle);
+
+        // Сортируем по номеру страницы (чтобы 1 шла перед 2)
+        content.sort((a, b) => a.pageNumber - b.pageNumber);
+
+        if (content.length > 0) {
+            return content;
+        } else {
+            return [{
+                pageTitle: "Нет материалов", 
+                text: "Материалы для этого курса еще не добавлены.", 
+                pageNumber: 1
+            }];
+        }
+    }
+
+    // Остальные методы (enroll, remove, update) остаются без изменений, 
+    // так как они работают только с массивом COURSES
+    async enrollCourse(courseTitle) {
+        const course = this.#courses.find(c => c.title === courseTitle);
+        if (course) {
+            course.isEnrolled = true;
+            course.percent = 0; 
+            course.action = "Начать";
+            try { await this.#apiService.updateCourse(course); } catch (err) {}
+        }
+    }
+
+    async removeCourse(courseTitle) {
+        const course = this.#courses.find(c => c.title === courseTitle);
+        if (course) {
+            course.isEnrolled = false;
+            course.percent = 0;
+            try { await this.#apiService.updateCourse(course); } catch (err) {}
+        }
+    }
+
+    async updateCourseProgress(courseTitle, newPercent) {
+        const course = this.#courses.find(c => c.title === courseTitle);
         if (course) {
             course.percent = newPercent;
-            if (newPercent === 100) {
-                 course.action = 'Завершено';
-            } else if (newPercent > 0) {
-                 course.action = 'Продолжить';
-            } else {
-                 course.action = 'Начать';
-            }
+            if (newPercent === 100) course.action = 'Завершено';
+            else if (newPercent > 0) course.action = 'Продолжить';
+            else course.action = 'Начать';
+            try { await this.#apiService.updateCourse(course); } catch (err) {}
         }
     }
 }
